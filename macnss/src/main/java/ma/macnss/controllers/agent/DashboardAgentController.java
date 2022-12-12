@@ -42,6 +42,40 @@ public class DashboardAgentController {
         return "agent/dashboard";
     }
 
+    @PostMapping("/create-folder")
+    public String createFolder(HttpSession session, @RequestParam Map<String,String> allRequests, ModelMap model){
+        // check if the user is logged in
+        if (session.getAttribute("agent") == null && session.getAttribute("id") == null) {
+            return "redirect:/agent-login";
+        }
+        model.addAttribute("clients", clientRepository.findAll());
+
+        String matriculeClient = allRequests.get("cin");
+        ArrayList<String> medicaments = new ArrayList<>();
+        ArrayList<String> ordonnances = new ArrayList<>();
+        ArrayList<String> scanners = new ArrayList<>();
+        // get the data from the form
+        for (int i = 1; i <= Integer.parseInt(allRequests.get("medicationQ")) ; i++) {
+            medicaments.add(allRequests.get("medi"+i));
+        }
+        for (int i = 1; i <= Integer.parseInt(allRequests.get("prescriptionQ")) ; i++) {
+            ordonnances.add(allRequests.get("pres"+i));
+        }
+        for (int i = 1; i <= Integer.parseInt(allRequests.get("scannerQ")) ; i++) {
+            scanners.add(allRequests.get("scnr"+i));
+        }
+        // create the folder
+        boolean IsCreated = agentDao.createFolder(matriculeClient,medicaments,ordonnances,scanners);
+        // check if the folder is created
+        if(IsCreated){
+            model.addAttribute("success","The folder has been created successfully");
+        }else{
+            model.addAttribute("error","An error occurred while creating the folder");
+        }
+
+        // redirect to the dashboard
+        return "redirect:agent/dashboard";
+    }
 
 
 
