@@ -49,7 +49,47 @@ public class AgentDao {
         return false;
     }
 
+    public boolean createFolder(String matriculeClient,List<String> medications,List<String> prescriptions,List<String> scanners){
+        // dossier
+        Dossier dossier = new Dossier();
+        dossier.setCode(UUID.randomUUID().toString());
+        dossier.setMatriculeClient(clientRepository.findById(matriculeClient).get());
+        dossier.setStatus("PENDING");
+        dossier.setResponse("PENDING");
+        // create dossier
+        dossierRepository.save(dossier);
+        // create medications
+        for(String medication : medications){
+            Medicament medicament = new Medicament();
+            medicament.setCode(medication);
+            medicament.setCodeDossier(dossierRepository.findById(dossier.getCode()).get());
+            medicationRepository.save(medicament);
+        }
+        // create prescriptions
+        for(String prescription : prescriptions){
+            Ordonnance ordonnance = new Ordonnance();
+            ordonnance.setTypeMedecin(prescription);
+            ordonnance.setCodeDossier(dossierRepository.findById(dossier.getCode()).get());
+            prescriptionRepository.save(ordonnance);
+        }
+        // create scanners
+        for(String scannerCode : scanners){
+            Scanner scanner = new Scanner();
+            scanner.setCode(scannerCode);
+            scanner.setCodeDossier(dossierRepository.findById(dossier.getCode()).get());
+            scannerRepository.save(scanner);
+        }
 
+        if (dossierRepository.findById(dossier.getCode()).isPresent()) {
+            // process folder
+            Double total = processFolder.processFolder(dossier.getCode());
+            dossier.setTotalPrix(total.toString());
+            dossier.setResponse("TREATED");
+            dossierRepository.save(dossier);
+            return true;
+        }
+        return false;
+    }
 
 
 
