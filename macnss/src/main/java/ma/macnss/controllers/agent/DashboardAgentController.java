@@ -49,6 +49,7 @@ public class DashboardAgentController {
             return "redirect:/agent-login";
         }
         model.addAttribute("clients", clientRepository.findAll());
+        model.addAttribute("folders", dossierRepository.findAll());
 
         String matriculeClient = allRequests.get("cin");
         ArrayList<String> medicaments = new ArrayList<>();
@@ -77,6 +78,28 @@ public class DashboardAgentController {
         return "redirect:agent/dashboard";
     }
 
+    @PostMapping("/accept-folder")
+    public String acceptFolder(HttpSession session, @RequestParam Map<String,String> allRequests, ModelMap model){
+        // check if the user is logged in
+        if (session.getAttribute("agent") == null && session.getAttribute("id") == null) {
+            return "redirect:/agent-login";
+        }
+        model.addAttribute("clients", clientRepository.findAll());
+        model.addAttribute("folders", dossierRepository.findAll());
+
+        String idFolder = allRequests.get("code-folder");
+        // accept the folder
+        boolean IsAccepted = agentDao.acceptFolder(idFolder);
+        // check if the folder is accepted
+        if(IsAccepted){
+            model.addAttribute("success","The folder has been accepted successfully");
+        }else{
+            model.addAttribute("error","An error occurred while accepting the folder");
+        }
+
+        // redirect to the dashboard
+        return "redirect:agent/dashboard";
+    }
 
 
 }
